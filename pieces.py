@@ -48,9 +48,36 @@ class ChessPiece:
         for hint in self.board.hints:
             hint.hide()
 
+    def get_moves(self):
+        """Return a list of standard moves for this piece"""
+        return []
+    
     def get_possible_moves(self):
         """Return a list of possible moves for this piece"""
-        return []
+        moves = self.get_moves()
+        blocked_moves = []  # Track moves to remove instead of removing during iteration (it doesn't work to remove items from a list while iterating over it)
+
+        for move in moves:
+            for piece in self.board.pieces:
+                if (piece.x, piece.y) == move:
+                    if piece.color == self.color:  # Can't move to a square occupied by a piece of the same color
+                        blocked_moves.append(move)
+                        break
+                    if piece.color != self.color:  # Either allowed move to capture the piece or skip the move
+                        for enemy_friend in self.board.pieces:
+                            if enemy_friend.color != self.color:
+                                if (piece.x, piece.y) in enemy_friend.get_moves():  # Can't capture a piece that is defended by an enemy piece
+                                    blocked_moves.append(move)
+                                    break
+                        break
+        
+        # Remove blocked moves after iteration
+        return [move for move in moves if move not in blocked_moves]
+    
+    def capture(self, x, y):
+        """Handle piece capture"""
+        self.board.remove_piece(x, y)
+        
 
 class King(ChessPiece):
     def __init__(self, screen, x, y, color, board):
@@ -60,13 +87,9 @@ class King(ChessPiece):
             self.image = pygame.image.load("Materials/Pieces/wk.png").convert_alpha()
         else:
             self.image = pygame.image.load("Materials/Pieces/bk.png").convert_alpha()
-    
-    def move(self, x, y):
-        self.x = x
-        self.y = y
-    
-    def get_possible_moves(self):
-        """Return a list of possible moves for the king"""
+
+    def get_moves(self):
+        """Return a list of standard moves for the king"""
         moves = []
         for dx in [-1, 0, 1]:
             for dy in [-1, 0, 1]:
@@ -79,3 +102,64 @@ class King(ChessPiece):
                     moves.append((new_x, new_y))
 
         return moves
+    
+    def get_possible_moves(self):
+        moves = super().get_possible_moves()
+
+        # # Remove moves that would put the king in check
+        # for enemy_piece in self.board.pieces:
+        #     if enemy_piece.color != self.color:
+        #         for move in enemy_piece.get_moves():
+        #             if move in moves:
+        #                 moves.remove(move)
+
+        # see ChessPiece.get_possible_moves() for a more robust implementation of move blocking that also accounts for defended pieces and doesn't modify the moves list while iterating over it
+        #  blocked_moves = []  # Track moves to remove instead of removing during iteration (it doesn't work to remove items from a list while iterating over it)
+        return moves
+    
+class Pawn(ChessPiece):
+    def __init__(self, screen, x, y, color, board):
+        super().__init__(screen, x, y, color, board) # call the parent class's __init__ method to initialize the common attributes
+        self.color = color
+        if self.color == WHITE:
+            self.image = pygame.image.load("Materials/Pieces/wp.png").convert_alpha()
+        else:
+            self.image = pygame.image.load("Materials/Pieces/bp.png").convert_alpha()
+        
+        self.IS_FIRST_MOVE = True
+
+    def move(self, x, y):
+        super().move(x, y)
+
+        self.IS_FIRST_MOVE = False
+    
+    def get_moves(self):
+        """Return a list of standard moves for the pawn"""
+        relative_moves = [[0,1], [-1,1], [1,1]] + ([[0,2]] if self.IS_FIRST_MOVE else [])
+
+        if self.board.IS_WHITE_BOTTOM == self.board.IS_WHITES_TURN: # xnor
+            relative_moves = [[0,-1], [1,-1], [-1,-1]] + ([[0,-2]] if self.IS_FIRST_MOVE else [])
+
+        moves = []  # Start with empty list for absolute positions
+        for dx, dy in relative_moves:
+                new_x = self.x + dx
+                new_y = self.y + dy
+
+                if 0 <= new_x < 8 and 0 <= new_y < 8: # Check if the move is within the board boundaries
+                    moves.append((new_x, new_y))
+
+        return moves
+    
+    def get_possible_moves(self):
+        moves = super().get_possible_moves()
+
+        # Remove attack moves that are not valid (i.e. no piece to capture)
+        blocked_moves = []  
+
+        for move in moves:
+            for piece in self.board.pieces:
+                if (piece.x, piece.y) == move: # TODO: if there is a piece in front of the pawn
+                    blocked_moves.append(move)
+                    break
+                
+        return [move for move in moves if move not in blocked_moves]

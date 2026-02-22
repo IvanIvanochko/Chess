@@ -1,8 +1,11 @@
 import pygame
-from pieces import BLACK, WHITE, King
+from pieces import BLACK, WHITE, King, Pawn
 
 class Board:
-    def __init__(self, screen):
+    def __init__(self, screen, color):
+        self.IS_WHITE_BOTTOM = (color == WHITE)
+        self.IS_WHITES_TURN = True
+
         self.screen = screen
         self.square_size = self.screen.get_width() // 8 # Floor division to get the size of each square on the board
 
@@ -17,7 +20,12 @@ class Board:
             for y in range(8):
                 self.hints.append(Hint(screen, x, y))
 
+        self.captured_pieces = []
         self.pieces = []
+        for x in range(8):
+            self.pieces.append(Pawn(screen, x, 6, WHITE, self)) # wp
+            self.pieces.append(Pawn(screen, x, 1, BLACK, self)) # bp
+
         self.pieces.append(King(screen, 4, 7, WHITE, self)) # wk
         self.pieces.append(King(screen, 4, 0, BLACK, self)) # bk
 
@@ -40,6 +48,27 @@ class Board:
         self.square_size = self.screen.get_width() // 8
 
         self.board = pygame.transform.scale(self.__board_img, (self.screen.get_width(), self.screen.get_height()))
+
+    def update_pieces_pos(self):
+        """Update pieces positions"""
+        self.pieces_pos = [(piece.x, piece.y) for piece in self.pieces]
+
+    def move_piece(self, piece, x, y, is_whites_turn):
+        """Move a piece and toggle turn"""
+        piece.move(x, y)
+        self.update_pieces_pos()
+        piece.deselect()
+
+        return not is_whites_turn
+    
+    def remove_piece(self, x, y):
+        """Remove a piece from the board"""
+        for piece in self.pieces:
+            if (piece.x, piece.y) == (x, y):
+                self.captured_pieces.append(piece)
+                self.pieces.remove(piece)
+                self.update_pieces_pos()
+                break
 
 class Hint:
     def __init__(self, screen, x, y):
