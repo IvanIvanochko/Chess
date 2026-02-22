@@ -1,5 +1,5 @@
 import pygame
-from pieces import WHITE, King
+from pieces import BLACK, WHITE, King
 
 class Board:
     def __init__(self, screen):
@@ -19,6 +19,7 @@ class Board:
 
         self.pieces = []
         self.pieces.append(King(screen, 4, 7, WHITE, self)) # wk
+        self.pieces.append(King(screen, 4, 0, BLACK, self)) # bk
 
         self.pieces_pos = []
         for piece in self.pieces:

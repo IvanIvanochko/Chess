@@ -44,7 +44,7 @@ class ChessPiece:
     def deselect(self):
         """Handle piece deselection"""
         self.is_selected = False
-
+        print(f"Deselected {self.piece_type}")
         for hint in self.board.hints:
             hint.hide()
 
