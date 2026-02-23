@@ -63,13 +63,6 @@ class ChessPiece:
                     if piece.color == self.color:  # Can't move to a square occupied by a piece of the same color
                         blocked_moves.append(move)
                         break
-                    if piece.color != self.color:  # Either allowed move to capture the piece or skip the move
-                        for enemy_friend in self.board.pieces:
-                            if enemy_friend.color != self.color:
-                                if (piece.x, piece.y) in enemy_friend.get_moves():  # Can't capture a piece that is defended by an enemy piece
-                                    blocked_moves.append(move)
-                                    break
-                        break
         
         # Remove blocked moves after iteration
         return [move for move in moves if move not in blocked_moves]
@@ -77,6 +70,10 @@ class ChessPiece:
     def capture(self, x, y):
         """Handle piece capture"""
         self.board.remove_piece(x, y)
+
+    def attack_moves(self):
+        """Return a list of attack moves for this piece (used for checking if the king is in check)"""
+        return self.get_moves()
         
 
 class King(ChessPiece):
@@ -106,16 +103,24 @@ class King(ChessPiece):
     def get_possible_moves(self):
         moves = super().get_possible_moves()
 
-        # # Remove moves that would put the king in check
-        # for enemy_piece in self.board.pieces:
-        #     if enemy_piece.color != self.color:
-        #         for move in enemy_piece.get_moves():
-        #             if move in moves:
-        #                 moves.remove(move)
+        blocked_moves = [] 
+        # Remove moves that would put the king in check
+        for enemy_piece in self.board.pieces:
+            if enemy_piece.color != self.color:
+                common_moves = [move for move in moves if move in enemy_piece.attack_moves()]
+                if common_moves:
+                    blocked_moves.extend(common_moves)
 
-        # see ChessPiece.get_possible_moves() for a more robust implementation of move blocking that also accounts for defended pieces and doesn't modify the moves list while iterating over it
-        #  blocked_moves = []  # Track moves to remove instead of removing during iteration (it doesn't work to remove items from a list while iterating over it)
-        return moves
+        # for move in moves:
+        #     for piece in self.board.pieces:
+        #             if piece.color != self.color:  # Either allowed move to capture the piece or skip the move
+        #                 for enemy_friend in self.board.pieces:
+        #                     if enemy_friend.color != self.color:
+        #                         if (piece.x, piece.y) in enemy_friend.get_moves():  # Can't capture a piece that is defended by an enemy piece
+        #                             blocked_moves.append(move)
+        #                             break
+
+        return [move for move in moves if move not in blocked_moves]
     
 class Pawn(ChessPiece):
     def __init__(self, screen, x, y, color, board):
@@ -137,7 +142,7 @@ class Pawn(ChessPiece):
         """Return a list of standard moves for the pawn"""
         relative_moves = [[0,1], [-1,1], [1,1]] + ([[0,2]] if self.IS_FIRST_MOVE else [])
 
-        if self.board.IS_WHITE_BOTTOM == self.board.IS_WHITES_TURN: # xnor
+        if self.board.IS_WHITE_BOTTOM == (self.color == WHITE): # xnor
             relative_moves = [[0,-1], [1,-1], [-1,-1]] + ([[0,-2]] if self.IS_FIRST_MOVE else [])
 
         moves = []  # Start with empty list for absolute positions
@@ -152,14 +157,51 @@ class Pawn(ChessPiece):
     
     def get_possible_moves(self):
         moves = super().get_possible_moves()
-
+        
         # Remove attack moves that are not valid (i.e. no piece to capture)
         blocked_moves = []  
 
-        for move in moves:
-            for piece in self.board.pieces:
-                if (piece.x, piece.y) == move: # TODO: if there is a piece in front of the pawn
-                    blocked_moves.append(move)
-                    break
+        LEFT_ATCK, RIGHT_ATCK = False, False
+        for m in moves:
+            dx = m[0] - self.x
+
+            if dx == 0:  # Front move
+                for piece in self.board.pieces:
+                    if piece.x == m[0] and piece.y == m[1]:  # Can't move forward if there's a piece in the way
+                        blocked_moves.append(m)
+                        break
+                continue
+            elif dx == 1: # Right attack move is only valid if there's an enemy piece to capture
+                for piece in self.board.pieces:
+                    if piece.x == m[0] and piece.y == m[1]: 
+                        RIGHT_ATCK = True
+                        break
+            elif dx == -1: # Left attack move is only valid if there's an enemy piece to capture
+                for piece in self.board.pieces:
+                    if piece.x == m[0] and piece.y == m[1]: 
+                        LEFT_ATCK = True
+                        break
+
+        # Remove attack moves that are not valid (i.e. no piece to capture)
+        for m in moves:
+            dx = m[0] - self.x
+            if dx == 1 and not RIGHT_ATCK:  # Right attack move is only valid if there's an enemy piece to capture
+                blocked_moves.append(m)
+            elif dx == -1 and not LEFT_ATCK: # Left attack move is only valid if there's an enemy piece to capture
+                blocked_moves.append(m)
+
                 
+        return [move for move in moves if move not in blocked_moves]
+    
+    def attack_moves(self):
+        """Return a list of attack moves for this Pawn"""
+        moves = self.get_moves()
+
+        blocked_moves = [] 
+        for m in moves:
+            dx = m[0] - self.x
+
+            if dx == 0:  # Front move
+                blocked_moves.append(m)
+        
         return [move for move in moves if move not in blocked_moves]
