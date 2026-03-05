@@ -4,7 +4,7 @@ from .ChessPiece import ChessPiece, WHITE
 class Bishop(ChessPiece):
     def __init__(self, screen, x, y, color, board):
         super().__init__(screen, x, y, color, board)
-        self.color = color
+
         if self.color == WHITE:
             self.image = pygame.image.load("Materials/Pieces/wb.png").convert_alpha()
         else:
@@ -14,7 +14,7 @@ class Bishop(ChessPiece):
         """Return a list of standard moves for the bishop"""
         relative_moves = []
 
-        for i in range(0, 7):
+        for i in range(0, 8):
             relative_moves.append([i, i])
             relative_moves.append([-i, i])
             relative_moves.append([i, -i])
@@ -31,7 +31,7 @@ class Bishop(ChessPiece):
         return moves
     
     def get_possible_moves(self):
-        moves = ChessPiece.get_possible_moves(self)
+        moves = super().get_possible_moves()
         
         blocked_moves = []
 
@@ -52,7 +52,7 @@ class Bishop(ChessPiece):
 
                     piece_dist2 = piece_dx*piece_dx + piece_dy*piece_dy
 
-                    for i in range(0, 7):
+                    for i in range(0, 8):
                         dr_move = (self.x + drx * i, self.y + dry * i)
 
                         move_dx = dr_move[0] - self.x

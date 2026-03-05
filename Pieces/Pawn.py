@@ -4,7 +4,7 @@ from .ChessPiece import ChessPiece, WHITE
 class Pawn(ChessPiece):
     def __init__(self, screen, x, y, color, board):
         super().__init__(screen, x, y, color, board)
-        self.color = color
+
         if self.color == WHITE:
             self.image = pygame.image.load("Materials/Pieces/wp.png").convert_alpha()
         else:

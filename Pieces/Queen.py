@@ -4,7 +4,7 @@ from .ChessPiece import ChessPiece, WHITE
 class Queen(ChessPiece):
     def __init__(self, screen, x, y, color, board):
         super().__init__(screen, x, y, color, board)
-        self.color = color
+
         if self.color == WHITE:
             self.image = pygame.image.load("Materials/Pieces/wq.png").convert_alpha()
         else:
@@ -14,7 +14,7 @@ class Queen(ChessPiece):
         """Return a list of standard moves for the queen"""
         relative_moves = []
 
-        for i in range(0, 7):
+        for i in range(0, 8):
             relative_moves.append([i, 0])
             relative_moves.append([0, i])
             relative_moves.append([-i, 0])
@@ -37,7 +37,7 @@ class Queen(ChessPiece):
 
     def get_possible_moves(self):
         """Return a list of possible moves for the queen"""
-        moves = ChessPiece.get_possible_moves(self)
+        moves = super().get_possible_moves()         
         
         blocked_moves = []
 
@@ -63,7 +63,7 @@ class Queen(ChessPiece):
 
                 # If there's a piece in the way of the move (Bishop-like movement)
                 if piece.x == (m[0] - drx_b) and piece.y == (m[1] - dry_b):  
-                    for i in range(0, 7):
+                    for i in range(0, 8):
                         dr_move = (self.x + drx_b * i, self.y + dry_b * i)
 
                         move_dx = dr_move[0] - self.x
@@ -84,7 +84,7 @@ class Queen(ChessPiece):
 
                 # If there's a piece in the way of the move (Rook-like movement)
                 elif piece.x == (m[0] - drx_r) and piece.y == (m[1] - dry_r):
-                    for i in range(0, 7):
+                    for i in range(0, 8):
                         dr_move = (self.x + drx_r * i, self.y + dry_r * i)
 
                         move_dx = dr_move[0] - self.x
