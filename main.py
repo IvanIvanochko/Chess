@@ -1,6 +1,6 @@
 import pygame
 from board import Board
-from pieces import BLACK, WHITE
+from Pieces import BLACK, WHITE
 
 pygame.init()
 
@@ -66,7 +66,7 @@ while running:
                 selected_piece = None
             
             if selected_piece:
-                print(f"Possible moves: {selected_piece.get_possible_moves()}")
+                # print(f"Possible moves: {selected_piece.get_possible_moves()}")
 
                 if (x_clicked, y_clicked) in selected_piece.get_possible_moves():
                     board.IS_WHITES_TURN = board.move_piece(selected_piece, x_clicked, y_clicked, board.IS_WHITES_TURN)
