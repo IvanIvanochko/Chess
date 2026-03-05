@@ -4,7 +4,8 @@ A Python chess game implementation using Pygame with piece movement logic, move 
 
 ## To-Do List
 
-- [ ] Finish Queen movement logic
+- [x] Finish Queen movement logic
+- [x] Finish Knight movement logic
 
 ## Future Improvements
 

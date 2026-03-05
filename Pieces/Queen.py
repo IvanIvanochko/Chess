@@ -37,18 +37,15 @@ class Queen(ChessPiece):
 
     def get_possible_moves(self):
         """Return a list of possible moves for the queen"""
-        moves = super().get_possible_moves()         
-        
+        moves = self.get_moves()      
         blocked_moves = []
+        blocked_moves.append((self.x, self.y))
 
         for m in moves:
-            # Direction of Bishop movement
-            drx_b = 1 if m[0] - self.x > 0 else -1
-            dry_b = 1 if m[1] - self.y > 0 else -1
-
-            # Direction of Rook movement
-            drx_r = 0 if m[0] - self.x == 0 else 1 if m[0] - self.x > 0 else -1
-            dry_r = 0 if m[1] - self.y == 0 else 1 if m[1] - self.y > 0 else -1
+            drx = m[0] - self.x
+            dry = m[1] - self.y
+            
+            drx, dry = ChessPiece.normalize_direction((drx, dry))
 
             if m in blocked_moves:
                 continue
@@ -61,31 +58,9 @@ class Queen(ChessPiece):
                 piece_dy = piece.y - self.y
                 piece_dist2 = piece_dx*piece_dx + piece_dy*piece_dy
 
-                # If there's a piece in the way of the move (Bishop-like movement)
-                if piece.x == (m[0] - drx_b) and piece.y == (m[1] - dry_b):  
+                if piece.x == m[0] and piece.y == m[1]:  
                     for i in range(0, 8):
-                        dr_move = (self.x + drx_b * i, self.y + dry_b * i)
-
-                        move_dx = dr_move[0] - self.x
-                        move_dy = dr_move[1] - self.y
-                        move_dist2 = move_dx*move_dx + move_dy*move_dy
-
-                        if dr_move not in moves:
-                            continue
-
-                        if piece.color == self.color and move_dist2 < piece_dist2:
-                            continue
-
-                        if piece.color != self.color and move_dist2 <= piece_dist2:
-                            continue
-
-                        blocked_moves.append(dr_move)
-                    break
-
-                # If there's a piece in the way of the move (Rook-like movement)
-                elif piece.x == (m[0] - drx_r) and piece.y == (m[1] - dry_r):
-                    for i in range(0, 8):
-                        dr_move = (self.x + drx_r * i, self.y + dry_r * i)
+                        dr_move = (self.x + drx * i, self.y + dry * i)
 
                         move_dx = dr_move[0] - self.x
                         move_dy = dr_move[1] - self.y

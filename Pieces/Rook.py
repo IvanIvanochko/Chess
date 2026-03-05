@@ -31,13 +31,15 @@ class Rook(ChessPiece):
         return moves
     
     def get_possible_moves(self):
-        moves = super().get_possible_moves()
-        
+        moves = self.get_moves()      
         blocked_moves = []
+        blocked_moves.append((self.x, self.y))
 
         for m in moves:
-            drx = 0 if m[0] - self.x == 0 else 1 if m[0] - self.x > 0 else -1
-            dry = 0 if m[1] - self.y == 0 else 1 if m[1] - self.y > 0 else -1
+            drx = m[0] - self.x
+            dry = m[1] - self.y
+            
+            drx, dry = ChessPiece.normalize_direction((drx, dry))
 
             if m in blocked_moves:
                 continue
@@ -46,12 +48,11 @@ class Rook(ChessPiece):
                 if piece.x == self.x and piece.y == self.y:
                     continue
 
-                if piece.x == (m[0] - drx) and piece.y == (m[1] - dry):
-                    piece_dx = piece.x - self.x
-                    piece_dy = piece.y - self.y
+                piece_dx = piece.x - self.x
+                piece_dy = piece.y - self.y
+                piece_dist2 = piece_dx*piece_dx + piece_dy*piece_dy
 
-                    piece_dist2 = piece_dx*piece_dx + piece_dy*piece_dy
-
+                if piece.x == m[0] and piece.y == m[1]:  
                     for i in range(0, 8):
                         dr_move = (self.x + drx * i, self.y + dry * i)
 
@@ -69,6 +70,5 @@ class Rook(ChessPiece):
                             continue
 
                         blocked_moves.append(dr_move)
-                    
                     break
         return [move for move in moves if move not in blocked_moves]

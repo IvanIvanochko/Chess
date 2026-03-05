@@ -4,5 +4,6 @@ from .Queen import Queen
 from .Rook import Rook
 from .Bishop import Bishop
 from .Pawn import Pawn
+from .Knight import Knight
 
-__all__ = ['ChessPiece', 'King', 'Queen', 'Rook', 'Bishop', 'Pawn', 'WHITE', 'BLACK']
+__all__ = ['ChessPiece', 'King', 'Queen', 'Rook', 'Bishop', 'Pawn', 'Knight', 'WHITE', 'BLACK']

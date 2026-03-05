@@ -37,6 +37,11 @@ class Board:
         self.pieces.append(Bishop(screen, 2, 0, BLACK, self)) # bb
         self.pieces.append(Bishop(screen, 5, 0, BLACK, self)) # bb
 
+        self.pieces.append(Knight(screen, 1, 7, WHITE, self)) # wn
+        self.pieces.append(Knight(screen, 6, 7, WHITE, self)) # wn
+        self.pieces.append(Knight(screen, 1, 0, BLACK, self)) # bn
+        self.pieces.append(Knight(screen, 6, 0, BLACK, self)) # bn
+
         self.pieces.append(Rook(screen, 0, 7, WHITE, self)) # wr
         self.pieces.append(Rook(screen, 7, 7, WHITE, self)) # wr
         self.pieces.append(Rook(screen, 0, 0, BLACK, self)) # br
