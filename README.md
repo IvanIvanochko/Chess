@@ -32,6 +32,7 @@ Chess/
 │   ├── Queen.py           # Queen piece implementation
 │   ├── Rook.py            # Rook piece implementation
 │   ├── Bishop.py          # Bishop piece implementation
+│   ├── Knight.py          # Knight piece implementation
 │   └── Pawn.py            # Pawn piece implementation
 ├── Materials/             # Game assets
 │   ├── Pieces/            # Piece images (wk.png, bk.png, etc.)
@@ -42,7 +43,7 @@ Chess/
 
 ## Features
 
-- **Complete Piece Movement**: All chess pieces (King, Queen, Rook, Bishop, Pawn) with correct movement patterns
+- **Complete Piece Movement**: All chess pieces (King, Queen, Rook, Bishop, Knight, Pawn) with correct movement patterns
 - **Move Validation**: 
   - Detects blocking pieces (can't move through friendly pieces)
   - Allows capturing enemy pieces
@@ -92,6 +93,11 @@ Chess/
 - Moves horizontally, vertically, or diagonally
 - Cannot move through other pieces
 - Can capture at the end of its path
+
+### Knight
+- Moves in an L-shape: 2 squares in one direction and 1 square perpendicular (or vice versa)
+- Can jump over other pieces (not blocked by pieces in the way)
+- Can capture enemy pieces at its destination
 
 ### King
 - Moves one square in any direction
