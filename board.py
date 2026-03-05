@@ -1,5 +1,5 @@
 import pygame
-from pieces import BLACK, WHITE, King, Pawn
+from pieces import BLACK, WHITE, Bishop, King, Pawn
 
 class Board:
     def __init__(self, screen, color):
@@ -28,6 +28,11 @@ class Board:
 
         self.pieces.append(King(screen, 4, 7, WHITE, self)) # wk
         self.pieces.append(King(screen, 4, 0, BLACK, self)) # bk
+
+        self.pieces.append(Bishop(screen, 2, 7, WHITE, self)) # wb
+        self.pieces.append(Bishop(screen, 5, 7, WHITE, self)) # wb
+        self.pieces.append(Bishop(screen, 2, 0, BLACK, self)) # bb
+        self.pieces.append(Bishop(screen, 5, 0, BLACK, self)) # bb
 
         self.pieces_pos = []
         for piece in self.pieces:

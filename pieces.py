@@ -205,3 +205,62 @@ class Pawn(ChessPiece):
                 blocked_moves.append(m)
         
         return [move for move in moves if move not in blocked_moves]
+
+class Bishop(ChessPiece):
+    def __init__(self, screen, x, y, color, board):
+        super().__init__(screen, x, y, color, board) # call the parent class's __init__ method to initialize the common attributes
+        self.color = color
+        if self.color == WHITE:
+            self.image = pygame.image.load("Materials/Pieces/wb.png").convert_alpha()
+        else:
+            self.image = pygame.image.load("Materials/Pieces/bb.png").convert_alpha()
+
+    def get_moves(self):
+        """Return a list of standard moves for the pawn"""
+        relative_moves = []
+
+        for i in range(0, 7):
+            relative_moves.append([i, i])
+            relative_moves.append([-i, i])
+            relative_moves.append([i, -i])
+            relative_moves.append([-i, -i])
+
+        moves = []  # Start with empty list for absolute positions
+        for dx, dy in relative_moves:
+                new_x = self.x + dx
+                new_y = self.y + dy
+
+                if 0 <= new_x < 8 and 0 <= new_y < 8: # Check if the move is within the board boundaries
+                    moves.append((new_x, new_y))
+
+        return moves
+    
+    def get_possible_moves(self):
+        moves = super().get_possible_moves()
+        
+        # Remove attack moves that are not valid (i.e. no piece to capture)
+        blocked_moves = []  
+
+        for m in moves:
+            drx = 1 if m[0] - self.x > 0 else -1  # Direction of x movement
+            dry = 1 if m[1] - self.y > 0 else -1  # Direction of y movement
+
+            if m in blocked_moves:
+                continue
+
+            for piece in self.board.pieces:
+                if piece.x == (m[0] - drx) and piece.y == (m[1] - dry):  # If there's a piece in the way of the move
+                    if piece.color == self.color:  # Can't move to a square occupied by a piece of the same color
+                        for i in range(0, 8):
+                            dr_move = (self.x + drx * i, self.y + dry * i)
+
+                            if dr_move not in moves:
+                                break
+                            else:
+                                blocked_moves.append(m)
+                            
+                        break
+                    else:  # Can capture enemy pieces but can't move past them
+                        break
+
+        return [move for move in moves if move not in blocked_moves]
