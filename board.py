@@ -91,13 +91,16 @@ class Board:
 class Hint:
     def __init__(self, screen, x, y):
         self.is_visible = False
+        self.is_capture = False
         self.x = x
         self.y = y
         self.screen = screen
         self.__hint_img = pygame.image.load("Materials/hint.png").convert_alpha()
+        self.__capture_hint_img = pygame.image.load("Materials/capture_hint.png").convert_alpha()
 
         self.square_size = self.screen.get_width() // 8
         self.hint = pygame.transform.scale(self.__hint_img, (self.square_size, self.square_size))
+        self.capture_hint = pygame.transform.scale(self.__capture_hint_img, (self.square_size, self.square_size))
 
     def draw(self, square_size):
         if not self.is_visible:  # Only draw if visible
@@ -105,15 +108,19 @@ class Hint:
 
         self.square_size = square_size
         self.resize()
-        self.screen.blit(self.hint, (self.x * self.square_size, self.y * self.square_size))
+        hint_surface = self.capture_hint if self.is_capture else self.hint
+        self.screen.blit(hint_surface, (self.x * self.square_size, self.y * self.square_size))
 
     def resize(self):
         self.hint = pygame.transform.scale(self.__hint_img, (self.square_size, self.square_size))
+        self.capture_hint = pygame.transform.scale(self.__capture_hint_img, (self.square_size, self.square_size))
 
-    def show(self):
+    def show(self, is_capture=False):
         self.is_visible = True
+        self.is_capture = is_capture
     
     def hide(self):
         self.is_visible = False
+        self.is_capture = False
 
     

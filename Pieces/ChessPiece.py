@@ -38,9 +38,17 @@ class ChessPiece:
         """Handle piece selection"""
         self.is_selected = True
         print(f"Selected {self.piece_type}")
+
+        possible_moves = self.get_possible_moves()
+        enemy_positions = {
+            (piece.x, piece.y)
+            for piece in self.board.pieces
+            if piece.color != self.color
+        }
+
         for hint in self.board.hints:
-            if (hint.x, hint.y) in self.get_possible_moves():
-                hint.show()
+            if (hint.x, hint.y) in possible_moves:
+                hint.show(is_capture=(hint.x, hint.y) in enemy_positions)
     
     def deselect(self):
         """Handle piece deselection"""

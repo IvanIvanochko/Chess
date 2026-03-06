@@ -6,7 +6,8 @@ A Python chess game implementation using Pygame with piece movement logic, move 
 
 - [x] Finish Queen movement logic
 - [x] Finish Knight movement logic
-- [ ] Implement Capture Hint 
+- [x] Implement Capture Hint 
+- [ ] Images over square position shift fix
 
 ## Future Improvements
 
