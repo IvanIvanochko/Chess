@@ -8,6 +8,16 @@ A Python chess game implementation using Pygame with piece movement logic, move 
 - [x] Finish Knight movement logic
 - [x] Implement Capture Hint 
 - [ ] Images over square position shift fix
+- [x] King capture posibility
+- [x] Implement removing duplicates in all ChessPiece types get_moves()
+- [x] Bong cloud pos have no left move next to the pawn | King
+  - It was because of attack_moves which give all illegal/default moves,
+    better option is ofcourse get_possible_moves but the program was crashing
+    because of recursion, later I found out that recursion was happening because the King was checking himself.
+    BUT, the problem proceeds with behaviors of king towards one another,
+    I fixed with still keeping attack_moves, but now the default function returns
+    the get_possible_moves, and Pawn, and King have their own logic,
+    which so far works for King class 
 
 ## Future Improvements
 

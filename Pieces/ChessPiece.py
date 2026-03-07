@@ -81,7 +81,7 @@ class ChessPiece:
 
     def attack_moves(self):
         """Return a list of attack moves for this piece"""
-        return self.get_moves()
+        return self.get_possible_moves()
 
     def normalize_direction(v):
         x, y = v

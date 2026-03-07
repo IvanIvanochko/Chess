@@ -25,6 +25,9 @@ class Queen(ChessPiece):
             relative_moves.append([i, -i])
             relative_moves.append([-i, -i])
 
+        relative_moves = list(dict.fromkeys(tuple(move) for move in relative_moves)) # Remove duplicates
+        relative_moves.remove((0, 0)) # Remove the current position
+
         moves = []
         for dx, dy in relative_moves:
             new_x = self.x + dx

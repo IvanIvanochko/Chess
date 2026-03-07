@@ -26,9 +26,6 @@ class Board:
             self.pieces.append(Pawn(screen, x, 6, WHITE, self)) # wp
             self.pieces.append(Pawn(screen, x, 1, BLACK, self)) # bp
 
-        self.pieces.append(King(screen, 4, 7, WHITE, self)) # wk
-        self.pieces.append(King(screen, 4, 0, BLACK, self)) # bk
-
         self.pieces.append(Queen(screen, 3, 7, WHITE, self)) # wq
         self.pieces.append(Queen(screen, 3, 0, BLACK, self)) # bq
 
@@ -46,6 +43,9 @@ class Board:
         self.pieces.append(Rook(screen, 7, 7, WHITE, self)) # wr
         self.pieces.append(Rook(screen, 0, 0, BLACK, self)) # br
         self.pieces.append(Rook(screen, 7, 0, BLACK, self)) # br
+
+        self.pieces.append(King(screen, 4, 7, WHITE, self)) # wk
+        self.pieces.append(King(screen, 4, 0, BLACK, self)) # bk
 
         self.pieces_pos = []
         for piece in self.pieces:
@@ -92,6 +92,7 @@ class Hint:
     def __init__(self, screen, x, y):
         self.is_visible = False
         self.is_capture = False
+        self.is_debug = False
         self.x = x
         self.y = y
         self.screen = screen
@@ -107,8 +108,15 @@ class Hint:
             return
 
         self.square_size = square_size
-        self.resize()
-        hint_surface = self.capture_hint if self.is_capture else self.hint
+        
+        if self.is_debug:
+            # Create red debug surface
+            hint_surface = pygame.Surface((self.square_size, self.square_size), pygame.SRCALPHA)
+            hint_surface.fill((255, 0, 0, 128))  # Red with 50% transparency
+        else:
+            self.resize()
+            hint_surface = self.capture_hint if self.is_capture else self.hint
+        
         self.screen.blit(hint_surface, (self.x * self.square_size, self.y * self.square_size))
 
     def resize(self):
@@ -118,9 +126,16 @@ class Hint:
     def show(self, is_capture=False):
         self.is_visible = True
         self.is_capture = is_capture
+        self.is_debug = False
+
+    def show_debug(self):
+        self.is_visible = True
+        self.is_capture = False
+        self.is_debug = True
     
     def hide(self):
         self.is_visible = False
         self.is_capture = False
+        self.is_debug = False
 
     
