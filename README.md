@@ -4,6 +4,8 @@ A Python chess game implementation using Pygame with piece movement logic, move 
 
 ## To-Do List
 
+- [ ] Add move history, so the castling logic could be implemented
+   - We will check if Rook or King was moved based by history move
 - [x] Finish Queen movement logic
 - [x] Finish Knight movement logic
 - [x] Implement Capture Hint 
