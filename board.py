@@ -2,18 +2,19 @@ import pygame
 from Pieces import *
 
 class Board:
-    def __init__(self, screen, color):
+    def __init__(self, screen, color, screen_info):
         self.IS_WHITE_BOTTOM = (color == WHITE)
         self.IS_WHITES_TURN = True
 
         self.screen = screen
-        self.square_size = self.screen.get_width() // 8 # Floor division to get the size of each square on the board
+        self.screen_info = screen_info
+        self.square_size = self.screen_info.board_size // 8 # Floor division to get the size of each square on the board
 
         self.__board_img = pygame.image.load("Materials/Pieces/board.png")
-        self.board = pygame.transform.scale(self.__board_img, (screen.get_width(), screen.get_height()))
+        self.board = pygame.transform.scale(self.__board_img, (self.screen_info.board_size, self.screen_info.board_size))
 
         self.__hint_img = pygame.image.load("Materials/hint.png").convert_alpha()
-        self.hint = pygame.transform.scale(self.__hint_img, (screen.get_width(), screen.get_height()))
+        self.hint = pygame.transform.scale(self.__hint_img, (self.screen_info.board_size, self.screen_info.board_size))
 
         self.hints = []
         for x in range(8):
@@ -51,6 +52,8 @@ class Board:
         for piece in self.pieces:
             self.pieces_pos.append((piece.x, piece.y))
 
+        self.move_history = []
+
     def draw(self):
         self.screen.blit(self.board, (0, 0))
 
@@ -73,6 +76,8 @@ class Board:
 
     def move_piece(self, piece, x, y, is_whites_turn):
         """Move a piece and toggle turn"""
+        self.record_move(piece, x, y)
+
         piece.move(x, y)
         self.update_pieces_pos()
         piece.deselect()
@@ -83,10 +88,28 @@ class Board:
         """Remove a piece from the board"""
         for piece in self.pieces:
             if (piece.x, piece.y) == (x, y):
+                self.move_history.append('x') # Record the capture in move history
+
                 self.captured_pieces.append(piece)
                 self.pieces.remove(piece)
                 self.update_pieces_pos()
                 break
+    
+    def record_move(self, piece, x, y):
+        """Record a move in the move history"""
+        alphabet = "abcdefgh"
+
+        piece_name = piece.__class__.__name__[0].upper() if piece.__class__ != Pawn else ""
+        capture_symbol = 'x' if self.move_history and self.move_history[-1] == 'x' else ''
+        coordinates = f"{alphabet[x]}{8 - y}"
+
+        move_notation = f"{piece_name}{capture_symbol}{coordinates}"
+
+        if capture_symbol == 'x':
+            self.move_history[-1] = move_notation
+        else:
+            self.move_history.append(move_notation)
+
 
 class Hint:
     def __init__(self, screen, x, y):

@@ -1,3 +1,4 @@
+from attr import dataclass
 import pygame
 
 from board import Board
@@ -5,19 +6,38 @@ from Pieces import BLACK, WHITE
 
 
 class ChessGame:
+    @dataclass
+    class ScreenInfo:
+        board_size: int
+        info_panel_width: int
+
+        @property
+        def start_info_panel(self):
+            return self.board_size
+
     def __init__(self, window_size=700):
         pygame.init()
-        self.screen = pygame.display.set_mode((window_size, window_size), pygame.RESIZABLE)
-        pygame.display.set_caption("Chess")
 
-        self.board = Board(self.screen, WHITE)
+        self.screen_info = self.ScreenInfo(
+            board_size=window_size,
+            info_panel_width=300
+        )
+
+        self.screen = pygame.display.set_mode((self.screen_info.board_size + self.screen_info.info_panel_width, self.screen_info.board_size), pygame.RESIZABLE)
+        pygame.display.set_caption("Chess")
+        self.font = pygame.font.Font(None, 48)
+
+        self.board = Board(self.screen, WHITE, self.screen_info)
         self.selected_piece = None
         self.clock = pygame.time.Clock()
         self.running = True
 
     def run(self):
         while self.running:
+            self.screen.fill((0, 0, 0))
             self.board.draw()
+            self.display_whose_turn(10, 10)
+            self.display_move_history(10, 60)
 
             for event in pygame.event.get():
                 self.handle_event(event)
@@ -41,7 +61,7 @@ class ChessGame:
 
     def handle_resize(self, event):
         size = min(event.size[0], event.size[1])
-        self.screen = pygame.display.set_mode((size, size), pygame.RESIZABLE)
+        self.screen = pygame.display.set_mode((size + self.screen_info.info_panel_width, size), pygame.RESIZABLE)
         self.board.resize(size)
 
     def handle_click(self):
@@ -108,3 +128,18 @@ class ChessGame:
         if self.selected_piece:
             self.selected_piece.deselect()
             self.selected_piece = None
+
+    def display_whose_turn(self, x, y):
+        if self.board.IS_WHITES_TURN:
+            text_surface = self.font.render("White's Turn", True, (255, 255, 255))
+        else:
+            text_surface = self.font.render("Black's Turn", True, (255, 255, 255))
+        self.screen.blit(text_surface, (self.screen_info.start_info_panel + x, y))
+
+    def display_move_history(self, x, y, x_margin=150, y_margin=40):
+        move_history = self.board.move_history
+        y_offset = 0
+        for i, move in enumerate(move_history):
+            text_surface = self.font.render(move, True, (255, 255, 255))
+            y_offset += 1 if i % 2 == 0 and i != 0 else 0
+            self.screen.blit(text_surface, (self.screen_info.start_info_panel + x + (i % 2 * x_margin), y + y_offset * y_margin))
