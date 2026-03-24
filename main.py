@@ -1,78 +1,10 @@
-import pygame
-from board import Board
-from Pieces import BLACK, WHITE
+from game import ChessGame
 
-pygame.init()
 
-screen = pygame.display.set_mode((700, 700), pygame.RESIZABLE)
-screen_width, screen_height = screen.get_size()
+def main():
+    game = ChessGame()
+    game.run()
 
-board = Board(screen, WHITE)
 
-running = True
-x = 0
-clock = pygame.time.Clock()
-delta_time = 0.1
-elapsed_time = 0.0
-
-selected_piece = None
-
-while running:
-    board.draw()
-    
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT: # handle window close events
-            running = False
-        elif event.type == pygame.VIDEORESIZE: # handle window resize events
-            size = min(event.size[0], event.size[1]) # maintain 1:1 aspect ratio
-            screen = pygame.display.set_mode((size, size), pygame.RESIZABLE)
-            board.resize(size) 
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-
-            x_clicked = mouse_x // board.square_size
-            y_clicked = mouse_y // board.square_size
-
-            piece_clicked = False
-            for piece in board.pieces:
-                if piece.is_clicked(mouse_x, mouse_y) and selected_piece is None:
-                    if (board.IS_WHITES_TURN and piece.color == WHITE) or (not board.IS_WHITES_TURN and piece.color == BLACK):
-                        selected_piece = piece
-                        selected_piece.select()
-                        piece_clicked = True
-                elif piece.is_clicked(mouse_x, mouse_y) and selected_piece is not None:
-                    piece_clicked = True
-                    if piece == selected_piece:
-                        piece.deselect()
-                        selected_piece = None
-                    elif piece != selected_piece:
-                        if (board.IS_WHITES_TURN and piece.color == WHITE):
-                            selected_piece.deselect()
-                            selected_piece = piece
-                            selected_piece.select()
-                        if (board.IS_WHITES_TURN and piece.color == BLACK) or (not board.IS_WHITES_TURN and piece.color == WHITE):
-                            if (x_clicked, y_clicked) in selected_piece.get_possible_moves():
-                                selected_piece.capture(x_clicked, y_clicked)
-                                board.IS_WHITES_TURN = board.move_piece(selected_piece, x_clicked, y_clicked, board.IS_WHITES_TURN)
-                                selected_piece = None
-                            else:
-                                selected_piece.deselect()
-                                selected_piece = None
-
-            
-            # Deselect if no piece was clicked
-            if not piece_clicked and selected_piece is not None and (x_clicked, y_clicked) not in selected_piece.get_possible_moves():
-                selected_piece.deselect()
-                selected_piece = None
-            
-            if selected_piece:
-                # print(f"Possible moves: {selected_piece.get_possible_moves()}")
-
-                if (x_clicked, y_clicked) in selected_piece.get_possible_moves():
-                    board.IS_WHITES_TURN = board.move_piece(selected_piece, x_clicked, y_clicked, board.IS_WHITES_TURN)
-                    selected_piece = None
-
-    pygame.display.flip() # show what we have drawn
-    delta_time = clock.tick(60) / 1000.0 # limit to 60 frames per second and get the time since the last frame in seconds
-
-pygame.quit()
+if __name__ == "__main__":
+    main()
