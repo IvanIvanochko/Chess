@@ -4,6 +4,7 @@ from .ChessPiece import ChessPiece, WHITE
 class Knight(ChessPiece):
     def __init__(self, screen, x, y, color, board):
         super().__init__(screen, x, y, color, board)
+        self.piece_notation = "N"
 
         if self.color == WHITE:
             self.image = pygame.image.load("Materials/Pieces/wn.png").convert_alpha()

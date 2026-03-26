@@ -1,9 +1,12 @@
 import pygame
-from .ChessPiece import ChessPiece, WHITE
+
+from Pieces.Rook import Rook
+from .ChessPiece import BLACK, ChessPiece, WHITE
 
 class King(ChessPiece):
     def __init__(self, screen, x, y, color, board):
         super().__init__(screen, x, y, color, board)
+        self.piece_notation = "K"
 
         if self.color == WHITE:
             self.image = pygame.image.load("Materials/Pieces/wk.png").convert_alpha()
@@ -29,6 +32,7 @@ class King(ChessPiece):
     
     def get_possible_moves(self):
         moves = super().get_possible_moves()
+        moves.extend(self.get_castle_moves()) # Add castling moves
 
         blocked_moves = []
 
@@ -54,3 +58,70 @@ class King(ChessPiece):
     def attack_moves(self):
         """Return a list of attack moves for the king"""
         return self.get_moves()
+    
+    def get_castle_moves(self):
+        """Handle castling for the king"""
+
+        if self.x != self.start_x or self.y != self.start_y: # King has moved, cannot castle
+            return []
+        
+        if self.has_moved: # King has moved, cannot castle
+            return []
+        
+        left_rook = None
+        right_rook = None
+
+        for piece in self.board.pieces:
+            if isinstance(piece, Rook) and piece.color == self.color:
+                if piece.x < self.x: # Left rook
+                    left_rook = piece
+                else: # Right rook
+                    right_rook = piece
+
+        RIGHT_CASTLE = True
+        LEFT_CASTLE = True
+
+        if left_rook.has_moved:
+            LEFT_CASTLE = False
+        if right_rook.has_moved:    
+            RIGHT_CASTLE = False
+
+        if not LEFT_CASTLE and not RIGHT_CASTLE:
+            return []
+        
+        for piece in self.board.pieces:
+            for i in [5, 6]:
+                if piece.x == i and piece.y == self.start_y:
+                    RIGHT_CASTLE = False
+                    break
+            for i in [1, 2, 3]:
+                if piece.x == i and piece.y == self.start_y:
+                    LEFT_CASTLE = False
+                    break
+
+        if not LEFT_CASTLE and not RIGHT_CASTLE:
+            return []
+        
+        moves = []
+        if RIGHT_CASTLE:
+            moves.append((self.x + 2, self.y))
+        if LEFT_CASTLE: 
+            moves.append((self.x - 2, self.y))
+        
+        return moves
+        
+    def move(self, x, y):
+        if x == self.x + 2 and y == self.start_y: # Right castle
+            rook = next((piece for piece in self.board.pieces if isinstance(piece, Rook) and piece.color == self.color and piece.x > self.x), None)
+            if rook:
+                rook.move(self.x + 1, self.y, record_move=False) 
+                self.board.record_custom_move("O-O")
+
+        if x == self.x - 2 and y == self.start_y: # Left castle
+            rook = next((piece for piece in self.board.pieces if isinstance(piece, Rook) and piece.color == self.color and piece.x < self.x), None)
+            if rook:
+                rook.move(self.x - 1, self.y, record_move=False) 
+                self.board.record_custom_move("O-O-O")
+
+        super().move(x, y, record_move=False)
+        

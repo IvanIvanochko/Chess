@@ -76,8 +76,6 @@ class Board:
 
     def move_piece(self, piece, x, y, is_whites_turn):
         """Move a piece and toggle turn"""
-        self.record_move(piece, x, y)
-
         piece.move(x, y)
         self.update_pieces_pos()
         piece.deselect()
@@ -99,16 +97,19 @@ class Board:
         """Record a move in the move history"""
         alphabet = "abcdefgh"
 
-        piece_name = piece.__class__.__name__[0].upper() if piece.__class__ != Pawn else ""
         capture_symbol = 'x' if self.move_history and self.move_history[-1] == 'x' else ''
         coordinates = f"{alphabet[x]}{8 - y}"
 
-        move_notation = f"{piece_name}{capture_symbol}{coordinates}"
+        move_notation = f"{piece.piece_notation}{capture_symbol}{coordinates}"
 
         if capture_symbol == 'x':
             self.move_history[-1] = move_notation
         else:
             self.move_history.append(move_notation)
+
+    def record_custom_move(self, notation):
+        """Record a custom move in the move history (e.g. for castling)"""
+        self.move_history.append(notation)
 
 
 class Hint:

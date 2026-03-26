@@ -12,8 +12,12 @@ class ChessPiece:
         self.image = None
         self.x = x
         self.y = y
+        self.start_x = x
+        self.start_y = y
+        self.has_moved = False
         self.color = color
         self.piece_type = self.color + " " + self.__class__.__name__
+        self.piece_notation = "" # Algebraic notation for this piece
         self.square_size = self.screen.get_width() // 8
     
     def draw(self, screen, square_size): 
@@ -22,9 +26,15 @@ class ChessPiece:
         self.resize()
         self.screen.blit(self.piece_img, (self.x * self.square_size, self.y * self.square_size))
     
-    def move(self, x, y):
+    def move(self, x, y, record_move=True):
         self.x = x
         self.y = y
+
+        if record_move:
+            self.board.record_move(self, x, y)
+
+        if not self.has_moved:
+            self.has_moved = True
 
     def resize(self):
         self.piece_img = pygame.transform.scale(self.image, (self.square_size, self.square_size))
