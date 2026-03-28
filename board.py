@@ -2,6 +2,7 @@ import math
 
 import pygame
 from Pieces import *
+from UI import Hint
 
 class Board:
     def __init__(self, screen, color, screen_info):
@@ -10,8 +11,6 @@ class Board:
 
         self.screen = screen
         self.screen_info = screen_info
-        self.square_size = self.screen_info.board_size // 8  # Ceiling division to get the size of each square on the board
-        self.pos_offset_compensation = math.ceil(self.screen_info.board_size % 8) 
         self.__board_img = pygame.image.load("Materials/Pieces/board.png")
         self.board = pygame.transform.scale(self.__board_img, (self.screen_info.board_size, self.screen_info.board_size))
 
@@ -56,6 +55,14 @@ class Board:
 
         self.move_history = []
 
+    @property
+    def square_size(self):
+        return int(self.screen_info.board_size // 8)
+    
+    @property
+    def pos_offset_compensation(self):
+        return 1 if (self.screen_info.board_size % 8) != 0 else 0
+
     def position_img(self, x, y):
         """Return the position of the top left corner of the square at (x, y)"""
         return (x * self.square_size + self.pos_offset_compensation, y * self.square_size + self.pos_offset_compensation)
@@ -67,19 +74,16 @@ class Board:
             piece.draw(self.screen, self.square_size)
 
         for hint in self.hints:
-            if (hint.x, hint.y) == (1, 1):
-                hint.show_debug()
-                print(f"Hint at (1, 1): {hint.x * self.square_size}")
+            # if (hint.x, hint.y) == (1, 1):
+            #     hint.show_debug()
+            #     print(f"Hint at (1, 1): {hint.x * self.square_size, self.pos_offset_compensation}")
             hint.draw(self.square_size)
 
 
     def resize(self, new_size):
-        self.screen = pygame.display.set_mode((new_size, new_size), pygame.RESIZABLE)
-        
-        self.square_size = self.screen.get_width() // 8
-        self.pos_offset_compensation = math.ceil(self.screen_info.board_size % 8) 
-
-        self.board = pygame.transform.scale(self.__board_img, (self.screen.get_width(), self.screen.get_height()))
+        self.screen_info._board_size = int(new_size)
+        self.board = pygame.transform.scale(self.__board_img, (int(new_size), int(new_size)))
+        self.hint = pygame.transform.scale(self.__hint_img, (self.square_size, self.square_size))
 
     def update_pieces_pos(self):
         """Update pieces positions"""
@@ -121,57 +125,5 @@ class Board:
     def record_custom_move(self, notation):
         """Record a custom move in the move history (e.g. for castling)"""
         self.move_history.append(notation)
-
-
-class Hint:
-    def __init__(self, screen, x, y, board):
-        self.is_visible = False
-        self.is_capture = False
-        self.is_debug = False
-        self.x = x
-        self.y = y
-        self.board = board
-        self.screen = screen
-        self.__hint_img = pygame.image.load("Materials/hint.png").convert_alpha()
-        self.__capture_hint_img = pygame.image.load("Materials/capture_hint.png").convert_alpha()
-
-        self.square_size = self.board.square_size
-        self.hint = pygame.transform.scale(self.__hint_img, (self.square_size, self.square_size))
-        self.capture_hint = pygame.transform.scale(self.__capture_hint_img, (self.square_size, self.square_size))
-
-    def draw(self, square_size):
-        if not self.is_visible:  # Only draw if visible
-            return
-
-        self.square_size = square_size
-        
-        if self.is_debug:
-            # Create red debug surface
-            hint_surface = pygame.Surface((self.square_size, self.square_size), pygame.SRCALPHA)
-            hint_surface.fill((255, 0, 0, 128))  # Red with 50% transparency
-        else:
-            self.resize()
-            hint_surface = self.capture_hint if self.is_capture else self.hint
-        
-        self.screen.blit(hint_surface, self.board.position_img(self.x, self.y))
-
-    def resize(self):
-        self.hint = pygame.transform.scale(self.__hint_img, (self.square_size, self.square_size))
-        self.capture_hint = pygame.transform.scale(self.__capture_hint_img, (self.square_size, self.square_size))
-
-    def show(self, is_capture=False):
-        self.is_visible = True
-        self.is_capture = is_capture
-        self.is_debug = False
-
-    def show_debug(self):
-        self.is_visible = True
-        self.is_capture = False
-        self.is_debug = True
-    
-    def hide(self):
-        self.is_visible = False
-        self.is_capture = False
-        self.is_debug = False
 
     
