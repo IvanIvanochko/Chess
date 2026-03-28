@@ -18,13 +18,13 @@ class ChessPiece:
         self.color = color
         self.piece_type = self.color + " " + self.__class__.__name__
         self.piece_notation = "" # Algebraic notation for this piece
-        self.square_size = self.screen.get_width() // 8
+        self.square_size = self.board.square_size
     
     def draw(self, screen, square_size): 
         self.screen = screen
         self.square_size = square_size
         self.resize()
-        self.screen.blit(self.piece_img, (self.x * self.square_size, self.y * self.square_size))
+        self.screen.blit(self.piece_img, self.board.position_img(self.x, self.y))
     
     def move(self, x, y, record_move=True):
         self.x = x
@@ -41,7 +41,7 @@ class ChessPiece:
 
     def is_clicked(self, mouse_x, mouse_y):
         """Check if mouse click is on this piece"""
-        piece_rect = self.piece_img.get_rect(topleft=(self.x * self.square_size, self.y * self.square_size))
+        piece_rect = self.piece_img.get_rect(topleft=self.board.position_img(self.x, self.y))
         return piece_rect.collidepoint(mouse_x, mouse_y)
     
     def select(self):
