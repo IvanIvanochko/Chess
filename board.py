@@ -7,7 +7,7 @@ from UI import Hint
 class Board:
     def __init__(self, screen, color, screen_info):
         self.IS_WHITE_BOTTOM = (color == WHITE)
-        self.IS_WHITES_TURN = True
+        self.IS_WHITES_TURN = (color == WHITE)
 
         self.screen = screen
         self.screen_info = screen_info
@@ -89,13 +89,79 @@ class Board:
         """Update pieces positions"""
         self.pieces_pos = [(piece.x, piece.y) for piece in self.pieces]
 
-    def move_piece(self, piece, x, y, is_whites_turn):
+    def move_piece(self, piece, x, y):
         """Move a piece and toggle turn"""
         piece.move(x, y)
         self.update_pieces_pos()
         piece.deselect()
 
-        return not is_whites_turn
+        self.IS_WHITES_TURN = not self.IS_WHITES_TURN
+
+        kings_color = WHITE if self.IS_WHITES_TURN else BLACK
+        king = next((piece for piece in self.pieces if isinstance(piece, King) and piece.color == kings_color), None)
+        if self.king_in_check(king):
+            print("Check!")
+
+            attackers = king.get_attackers()
+            print(f"Attackers: {[attacker.piece_type for attacker in attackers]}")
+            
+            defenders = self.defenders_BlockOrCapture(attackers, king)
+            if king.get_possible_moves():
+                defenders.append(king) # Include king as a defender if it has legal moves to escape check
+            print(f"Defenders: {[defender.piece_type for defender in defenders]}")
+
+            if not defenders:
+                print("Checkmate!")
+                for piece in self.pieces:
+                    piece.is_selectable = False
+                
+            for piece in self.pieces:
+                if piece.color == king.color and piece not in defenders:
+                    piece.is_selectable = False
+            
+    def defenders_BlockOrCapture(self, attackers, king):
+            defenders = []
+            for attacker in attackers:
+                attacker_moves_dir = [(attacker.x, attacker.y)]
+
+                if not isinstance(attacker, Knight):
+                    dx, dy = ChessPiece.normalize_direction((attacker.x - king.x, attacker.y - king.y))
+                    attacker_moves = attacker.get_moves()
+
+                    for move in attacker_moves:
+                        move_dx = attacker.x - move[0]
+                        move_dy = attacker.y - move[1]
+                        if ChessPiece.normalize_direction((move_dx, move_dy)) == (dx, dy):
+                            attacker_moves_dir.append(move)
+                    attacker_moves_dir.remove((king.x, king.y))
+
+                for piece in self.pieces:
+                    if piece.color == king.color:
+                        if set(attacker_moves_dir) & set(piece.get_possible_moves()):
+                            piece.forced_moves = list(set(attacker_moves_dir) & set(piece.get_possible_moves()))
+                            defenders.append(piece)
+                            # self.show_debug(attacker_moves_dir) # Debugging: Show which moves can defend against the attacker
+
+            return defenders
+    
+    def king_in_check(self, king):
+        """Check if the king of the given color is in check"""
+        if not king:
+            return False
+
+        enemy_moves = king.get_enemy_moves()
+
+        if (king.x, king.y) in enemy_moves:
+            king.IS_IN_CHECK = True
+        else:
+            king.IS_IN_CHECK = False
+            
+            for piece in self.pieces:
+                if piece.color == king.color:
+                    piece.is_selectable = True
+                    piece.forced_moves = []
+
+        return king.IS_IN_CHECK
     
     def remove_piece(self, x, y):
         """Remove a piece from the board"""
@@ -125,5 +191,12 @@ class Board:
     def record_custom_move(self, notation):
         """Record a custom move in the move history (e.g. for castling)"""
         self.move_history.append(notation)
+
+    def show_debug(self, moves):
+        """ Highlights the given moves for debugging purposes """
+
+        for hint in self.hints:
+            if (hint.x, hint.y) in moves:
+                hint.show_debug()
 
     

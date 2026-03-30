@@ -85,12 +85,12 @@ class ChessGame:
             if clicked_piece and clicked_piece.color != self.selected_piece.color:
                 self.selected_piece.capture(x_clicked, y_clicked)
 
-            self.board.IS_WHITES_TURN = self.board.move_piece(
+            self.board.move_piece(
                 self.selected_piece,
                 x_clicked,
-                y_clicked,
-                self.board.IS_WHITES_TURN,
+                y_clicked
             )
+
             self.selected_piece = None
             return
 

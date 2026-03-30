@@ -8,6 +8,8 @@ class King(ChessPiece):
         super().__init__(screen, x, y, color, board)
         self.piece_notation = "K"
 
+        self.IS_IN_CHECK = False
+
         if self.color == WHITE:
             self.image = pygame.image.load("Materials/Pieces/wk.png").convert_alpha()
         else:
@@ -30,41 +32,56 @@ class King(ChessPiece):
 
         return moves
     
+    def get_enemy_moves(self):
+        """Return a list of all possible moves for enemy pieces (used for check detection)"""
+        moves = []
+        for piece in self.board.pieces:
+            if piece.color != self.color:
+                if isinstance(piece, King): # Don't call get_possible_moves for enemy king to avoid infinite recursion, just get its standard moves
+                    moves.extend(piece.get_moves())
+                else:
+                    moves.extend(piece.attack_moves())
+                
+                if (piece.x, piece.y) in moves:
+                    moves.remove((piece.x, piece.y))
+        
+        return moves
+    
+    def get_attackers(self):
+        """Return a list of pieces that are attacking this king (used for check detection)"""
+        attackers = []
+
+        for piece in self.board.pieces:
+            if piece.color != self.color:
+                if isinstance(piece, King):
+                    continue
+
+                if (self.x, self.y) in piece.attack_moves():
+                    attackers.append(piece)
+        
+        return attackers
+    
     def get_possible_moves(self):
         moves = super().get_possible_moves()
-        moves.extend(self.get_castle_moves()) # Add castling moves
+        moves.extend(self.get_castle_moves())
 
         blocked_moves = []
 
-        # All possible enemies moves
-        all_enemy_moves = []
-        for piece in self.board.pieces:
-            if piece.color != self.color: # Ignore King to prevent infinite recursion on get_possible_moves
-                all_enemy_moves.extend(piece.attack_moves())
-
-                if (piece.x, piece.y) in all_enemy_moves:
-                    all_enemy_moves.remove((piece.x, piece.y))
+        enemy_moves = self.get_enemy_moves()
 
         # Check if any of the king's moves are attacked by enemy pieces and block those moves
-        blocked_moves.extend([move for move in moves if move in all_enemy_moves]) 
+        blocked_moves.extend([move for move in moves if move in enemy_moves]) 
 
-        # Debugging: Show which moves are blocked
-        for hint in self.board.hints:
-            if (hint.x, hint.y) in blocked_moves:
-                hint.show_debug()
+        # self.board.show_debug(blocked_moves) # Debugging: Show which moves are blocked
 
         return [move for move in moves if move not in blocked_moves]
-    
-    def attack_moves(self):
-        """Return a list of attack moves for the king"""
-        return self.get_moves()
     
     def get_castle_moves(self):
         """Handle castling for the king"""
 
-        if self.x != self.start_x or self.y != self.start_y: # King has moved, cannot castle
+        if self.IS_IN_CHECK:
             return []
-        
+
         if self.has_moved: # King has moved, cannot castle
             return []
         
@@ -89,12 +106,20 @@ class King(ChessPiece):
         if not LEFT_CASTLE and not RIGHT_CASTLE:
             return []
         
+        enemy_moves = self.get_enemy_moves()
+        
         for piece in self.board.pieces:
             for i in [5, 6]:
+                if (i, self.start_y) in enemy_moves:
+                    RIGHT_CASTLE = False
+                    break
                 if piece.x == i and piece.y == self.start_y:
                     RIGHT_CASTLE = False
                     break
             for i in [1, 2, 3]:
+                if (i, self.start_y) in enemy_moves and i != 1:
+                    LEFT_CASTLE = False
+                    break
                 if piece.x == i and piece.y == self.start_y:
                     LEFT_CASTLE = False
                     break

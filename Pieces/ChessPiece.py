@@ -1,7 +1,7 @@
 import pygame
 
-WHITE = "white"
-BLACK = "black"
+WHITE = "WHITE"
+BLACK = "BLACK"
 
 
 class ChessPiece:
@@ -15,10 +15,13 @@ class ChessPiece:
         self.start_x = x
         self.start_y = y
         self.has_moved = False
+        self.is_selected = False
+        self.is_selectable = True
         self.color = color
         self.piece_type = self.color + " " + self.__class__.__name__
         self.piece_notation = "" # Algebraic notation for this piece
         self.square_size = self.board.square_size
+        self.forced_moves = [] 
     
     def draw(self, screen, square_size): 
         self.screen = screen
@@ -46,6 +49,9 @@ class ChessPiece:
     
     def select(self):
         """Handle piece selection"""
+        if not self.is_selectable:
+            return
+        
         self.is_selected = True
         print(f"Selected {self.piece_type}")
 
@@ -55,6 +61,9 @@ class ChessPiece:
             for piece in self.board.pieces
             if piece.color != self.color
         }
+        
+        if self.forced_moves:
+            possible_moves = self.forced_moves
 
         for hint in self.board.hints:
             if (hint.x, hint.y) in possible_moves:
@@ -92,7 +101,8 @@ class ChessPiece:
     def attack_moves(self):
         """Return a list of attack moves for this piece"""
         return self.get_possible_moves()
-
+    
+    @staticmethod
     def normalize_direction(v):
         x, y = v
         return (

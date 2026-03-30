@@ -22,7 +22,7 @@ A Python chess game implementation using Pygame with piece movement logic, move 
 
 ## Future Improvements
 
-- [ ] Checkmate detection
+- [x] Checkmate detection
 - [ ] Game state saving/loading
 - [ ] Move history
 - [ ] !!! AI opponent
