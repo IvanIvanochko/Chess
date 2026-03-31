@@ -12,10 +12,21 @@ class Pawn(ChessPiece):
             self.image = pygame.image.load("Materials/Pieces/bp.png").convert_alpha()
         
         self.IS_FIRST_MOVE = True
+        self.two_sqr_fwd = False # Track if the pawn just moved two squares forward (for en passant)
+        self.step_counter = 0 # Track how many moves have been made since this pawn's last move (for en passant)
 
-    def move(self, x, y):
-        super().move(x, y)
-        self.IS_FIRST_MOVE = False
+    def move(self, x, y, record_move=True):
+        super().move(x, y, record_move=record_move)
+
+        if record_move:
+            self.step_counter += 1
+
+        if self.step_counter > 1:
+            self.two_sqr_fwd = False # Reset two-square move status after one turn has passed
+            self.IS_FIRST_MOVE = False
+            
+        if abs(y - self.y) == 2:
+            self.two_sqr_fwd = True
     
     def get_moves(self):
         """Return a list of standard moves for the pawn"""

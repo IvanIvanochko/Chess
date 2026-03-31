@@ -95,10 +95,21 @@ class Board:
         self.update_pieces_pos()
         piece.deselect()
 
+        # Process opposing king's state
         self.IS_WHITES_TURN = not self.IS_WHITES_TURN
+        self.process_king_state()
 
+    def process_king_state(self):
         kings_color = WHITE if self.IS_WHITES_TURN else BLACK
+
         king = next((piece for piece in self.pieces if isinstance(piece, King) and piece.color == kings_color), None)
+
+        if self.is_stalemate(king):
+            for piece in self.pieces:
+                piece.is_selectable = False
+            
+            return
+
         if self.king_in_check(king):
             print("Check!")
 
@@ -118,6 +129,21 @@ class Board:
             for piece in self.pieces:
                 if piece.color == king.color and piece not in defenders:
                     piece.is_selectable = False
+
+    def is_stalemate(self, king):
+        """Check if the game is in stalemate for the given king"""
+        if not king:
+            return False
+
+        if self.king_in_check(king):
+            return False
+
+        for piece in self.pieces:
+            if piece.color == king.color and piece.get_possible_moves():
+                return False
+
+        print("Stalemate!")
+        return True
             
     def defenders_BlockOrCapture(self, attackers, king):
             defenders = []

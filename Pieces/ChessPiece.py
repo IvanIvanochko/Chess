@@ -3,7 +3,6 @@ import pygame
 WHITE = "WHITE"
 BLACK = "BLACK"
 
-
 class ChessPiece:
     """Parent class for all chess pieces"""
     def __init__(self, screen, x, y, color, board):
@@ -55,15 +54,32 @@ class ChessPiece:
         self.is_selected = True
         print(f"Selected {self.piece_type}")
 
+        blocked_moves = []
         possible_moves = self.get_possible_moves()
+
         enemy_positions = {
             (piece.x, piece.y)
             for piece in self.board.pieces
             if piece.color != self.color
         }
-        
+
         if self.forced_moves:
             possible_moves = self.forced_moves
+        elif not self.piece_notation == "K": # Check if the move puts own king in check
+            previous_pos = (self.x, self.y)
+            
+            for move in possible_moves: 
+                self.move(*move, record_move = False)
+                self.board.update_pieces_pos()
+
+                if self.board.king_in_check(next((p for p in self.board.pieces if p.piece_notation == "K" and p.color == self.color), None)):
+                    if move not in enemy_positions: # update_pieces_pos does not account for captures
+                        blocked_moves.append(move)
+
+                self.move(*previous_pos, record_move = False)
+                self.board.update_pieces_pos()
+
+            possible_moves = [move for move in possible_moves if move not in blocked_moves]
 
         for hint in self.board.hints:
             if (hint.x, hint.y) in possible_moves:
