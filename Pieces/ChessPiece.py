@@ -34,9 +34,9 @@ class ChessPiece:
 
         if record_move:
             self.board.record_move(self, x, y)
-
-        if not self.has_moved:
-            self.has_moved = True
+            
+            if not self.has_moved:
+                self.has_moved = True
 
     def resize(self):
         self.piece_img = pygame.transform.scale(self.image, (self.square_size, self.square_size))
