@@ -1,4 +1,6 @@
 import pygame
+
+from Pieces.Queen import Queen
 from .ChessPiece import ChessPiece, WHITE
 
 class Pawn(ChessPiece):
@@ -17,6 +19,8 @@ class Pawn(ChessPiece):
         self.AFTER_MOVE_L_NEIGHBOR = False
         self.AFTER_MOVE_R_NEIGHBOR = False
 
+        self.en_passant_pieces = []
+
 
     def move(self, x, y, record_move=True):
         if self.step_counter > 1:
@@ -31,6 +35,7 @@ class Pawn(ChessPiece):
             return
     
         super().move(x, y, record_move=record_move)
+
         if record_move:
             self.step_counter += 1
         
@@ -40,7 +45,15 @@ class Pawn(ChessPiece):
                         self.AFTER_MOVE_R_NEIGHBOR = True
                     if (piece.x - self.x) == -1:
                         self.AFTER_MOVE_L_NEIGHBOR = True
-
+        
+        if record_move and self.y == (0 if self.board.IS_WHITE_BOTTOM == (self.color == WHITE) else 7):
+            self.promote(Queen)
+    
+    def promote(self, new_piece_class):
+        """Promote this pawn to a new piece type"""
+        new_piece = new_piece_class(self.screen, self.x, self.y, self.color, self.board)
+        self.board.pieces.append(new_piece)
+        self.board.pieces.remove(self)
 
     
     def get_moves(self):
@@ -62,9 +75,9 @@ class Pawn(ChessPiece):
     
     def get_possible_moves(self):
         moves = super().get_possible_moves()
-        print(f"Has moved: {self.has_moved} | two_sqr_fwd: {self.two_sqr_fwd} | step_counter: {self.step_counter}")
+        # print(f"Has moved: {self.has_moved} | two_sqr_fwd: {self.two_sqr_fwd} | step_counter: {self.step_counter}")
         moves = self.left_right_atck(moves)
-        # moves = self.en_passant(moves)
+        moves = self.en_passant(moves)
         return moves
     
     def left_right_atck(self, moves, LEFT_ATCK=False, RIGHT_ATCK=False):
@@ -101,17 +114,32 @@ class Pawn(ChessPiece):
     
     def en_passant(self, moves):
         """Handle en passant capture for this pawn"""
-        if self.y == (3 if self.board.IS_WHITE_BOTTOM else 4):
+        dir = 1 if self.board.IS_WHITE_BOTTOM == (self.color == WHITE) else -1
+
+        if self.y == (3 if self.board.IS_WHITE_BOTTOM == (self.color == WHITE) else 4):
             for piece in self.board.pieces:
                 if piece.y == self.y and piece.piece_notation == "":
                     if piece.color != self.color and piece.two_sqr_fwd:
                         if (piece.x - self.x) == 1 and not self.AFTER_MOVE_R_NEIGHBOR:
-                            moves = self.left_right_atck(moves, True, False)
+                            moves.append((piece.x, piece.y - dir))
+                            self.en_passant_pieces.append((piece, (piece.x, piece.y - dir)))
                             return moves
                         
                         if (piece.x - self.x) == -1 and not self.AFTER_MOVE_L_NEIGHBOR:
-                            moves = self.left_right_atck(moves, False, True)
+                            moves.append((piece.x, piece.y - dir))
+                            self.en_passant_pieces.append((piece, (piece.x, piece.y - dir)))
                             return moves
+        return moves
+    
+    def capture(self, x, y):
+        """Handle piece capture"""
+        if self.en_passant_pieces:
+            for piece, pos in self.en_passant_pieces:
+                if pos == (x, y):
+                    super().capture(piece.x, piece.y)
+                    return
+        
+        super().capture(x, y)
 
     def record_pawn(pawn):
         """Record a pawn move in the move history, that was an en passant move"""

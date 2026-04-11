@@ -30,7 +30,6 @@ A Python chess game implementation using Pygame with piece movement logic, move 
 - [ ] En passant capture
 - [x] Castling
 - [ ] Turn management and turn indicator
-- [ ] Capture display
 
 ## Project Structure
 

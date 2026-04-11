@@ -98,10 +98,12 @@ class King(ChessPiece):
         RIGHT_CASTLE = True
         LEFT_CASTLE = True
 
-        if left_rook.has_moved:
-            LEFT_CASTLE = False
-        if right_rook.has_moved:    
-            RIGHT_CASTLE = False
+        if left_rook:
+            if left_rook.has_moved:
+                LEFT_CASTLE = False
+        if right_rook:
+            if right_rook.has_moved:
+                RIGHT_CASTLE = False
 
         if not LEFT_CASTLE and not RIGHT_CASTLE:
             return []

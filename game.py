@@ -82,8 +82,7 @@ class ChessGame:
             return
 
         if target_square in self.selected_piece.get_possible_moves():
-            if clicked_piece and clicked_piece.color != self.selected_piece.color:
-                self.selected_piece.capture(x_clicked, y_clicked)
+            self.selected_piece.capture(x_clicked, y_clicked)
 
             self.board.move_piece(
                 self.selected_piece,
