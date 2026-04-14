@@ -1,13 +1,14 @@
 from Pieces import BLACK, WHITE
 
+from AI.engines.minimax_engine import MinimaxEngine
 from AI.engines.random_engine import RandomEngine
 
 
 class AIManager:
-	def __init__(self, board, color=BLACK):
+	def __init__(self, board, color=BLACK, technique="random"):
 		self.board = board
 		self.color = color
-		self.technique = "random"
+		self.technique = technique
 		self.engine = self._create_engine()
 
 	def set_technique(self, technique):
@@ -18,6 +19,8 @@ class AIManager:
 	def _create_engine(self):
 		if self.technique == "random":
 			return RandomEngine(self.board, self.color)
+		if self.technique == "minimax":
+			return MinimaxEngine(self.board, self.color)
 
 		raise ValueError(f"Unsupported AI technique: {self.technique}")
 

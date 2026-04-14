@@ -22,7 +22,7 @@ class ChessGame:
         self.font = pygame.font.Font(None, 48)
 
         self.board = Board(self.screen, WHITE, self.screen_info)
-        self.ai_manager = AIManager(self.board, color=BLACK)
+        self.ai_manager = AIManager(self.board, color=BLACK, technique="minimax")
 
         self.info_panel = InfoPanel(self.screen, self.font, self.screen_info, self.board)
 
@@ -38,6 +38,7 @@ class ChessGame:
 
             self.info_panel.display_whose_turn(10, 10)
             self.info_panel.display_move_history(10, 60)
+            self.info_panel.draw_undo_button(10, -70)
 
             for event in pygame.event.get():
                 self.handle_event(event)
@@ -59,10 +60,9 @@ class ChessGame:
         if event.type == pygame.MOUSEBUTTONDOWN:
             self.handle_click()
 
-        if event.type == FINISHED_MOVE_EVENT:
-            if not self.board.IS_WHITES_TURN:
-                print("White's turn")
-                self.AI_Response()
+        # if event.type == FINISHED_MOVE_EVENT:
+        #     if not self.board.IS_WHITES_TURN:
+        #         self.AI_Response()
 
     def AI_Response(self):
         print("AI is thinking...")
@@ -90,6 +90,12 @@ class ChessGame:
 
     def handle_click(self):
         mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        if self.info_panel.is_undo_clicked(mouse_x, mouse_y):
+            self.clear_selection()
+            self.board.undo_move()
+            return
+
         x_clicked = mouse_x // self.board.square_size
         y_clicked = mouse_y // self.board.square_size
         target_square = (x_clicked, y_clicked)

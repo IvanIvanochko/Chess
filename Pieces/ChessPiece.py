@@ -29,14 +29,14 @@ class ChessPiece:
         self.screen.blit(self.piece_img, self.board.position_img(self.x, self.y))
     
     def move(self, x, y, record_move=True):
+        if record_move:
+            self.board.record_move(self, x, y, old_x=self.x, old_y=self.y, has_moved=self.has_moved)
+    
         self.x = x
         self.y = y
 
-        if record_move:
-            self.board.record_move(self, x, y)
-            
-            if not self.has_moved:
-                self.has_moved = True
+        if record_move and not self.has_moved:
+            self.has_moved = True
 
     def resize(self):
         self.piece_img = pygame.transform.scale(self.image, (self.square_size, self.square_size))
@@ -117,6 +117,17 @@ class ChessPiece:
     def attack_moves(self):
         """Return a list of attack moves for this piece"""
         return self.get_possible_moves()
+
+    def copy(self, board):
+        """Create a detached copy of this piece for a cloned board."""
+        new_piece = self.__class__(self.screen, self.x, self.y, self.color, board)
+        new_piece.start_x = self.start_x
+        new_piece.start_y = self.start_y
+        new_piece.has_moved = self.has_moved
+        new_piece.is_selected = False
+        new_piece.is_selectable = self.is_selectable
+        new_piece.forced_moves = list(self.forced_moves)
+        return new_piece
     
     @staticmethod
     def normalize_direction(v):

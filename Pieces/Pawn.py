@@ -52,8 +52,8 @@ class Pawn(ChessPiece):
     def promote(self, new_piece_class):
         """Promote this pawn to a new piece type"""
         new_piece = new_piece_class(self.screen, self.x, self.y, self.color, self.board)
-        self.board.pieces.append(new_piece)
-        self.board.pieces.remove(self)
+        index = self.board.pieces.index(self)
+        self.board.pieces[index] = new_piece
 
     
     def get_moves(self):
@@ -160,3 +160,12 @@ class Pawn(ChessPiece):
                 blocked_moves.append(m)
         
         return [move for move in moves if move not in blocked_moves]
+
+    def copy(self, board):
+        new_piece = super().copy(board)
+        new_piece.two_sqr_fwd = self.two_sqr_fwd
+        new_piece.step_counter = self.step_counter
+        new_piece.AFTER_MOVE_L_NEIGHBOR = self.AFTER_MOVE_L_NEIGHBOR
+        new_piece.AFTER_MOVE_R_NEIGHBOR = self.AFTER_MOVE_R_NEIGHBOR
+        new_piece.en_passant_pieces = []
+        return new_piece

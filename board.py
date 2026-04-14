@@ -194,29 +194,58 @@ class Board:
         for piece in self.pieces:
             if (piece.x, piece.y) == (x, y):
                 self.move_history.append('x') # Record the capture in move history
+                self.move_history[-1] = ({
+                    "notation": 'x',
+                    "captured_piece": piece,
+                })
 
                 self.captured_pieces.append(piece)
                 self.pieces.remove(piece)
                 self.update_pieces_pos()
                 break
     
-    def record_move(self, piece, x, y):
+    def record_move(self, piece, x, y, old_x=None, old_y=None, has_moved=None):
         """Record a move in the move history"""
         alphabet = "abcdefgh"
 
-        capture_symbol = 'x' if self.move_history and self.move_history[-1] == 'x' else ''
+        capture_symbol = 'x' if self.move_history and self.move_history[-1].get("notation") == 'x' else ''
         coordinates = f"{alphabet[x]}{8 - y}"
 
         move_notation = f"{piece.piece_notation}{capture_symbol}{coordinates}"
 
         if capture_symbol == 'x':
-            self.move_history[-1] = move_notation
-        else:
-            self.move_history.append(move_notation)
+            self.move_history[-1] = ({
+                "notation": move_notation,
+                "old_pos": (old_x, old_y),
+                "pos": (x, y),
+                "has_moved": has_moved,
+                "piece": piece,
+                "captured_piece": self.move_history[-1].get("captured_piece"),
+            })
+            return      
 
-    def record_custom_move(self, notation):
+        self.move_history.append({
+            "notation": move_notation,
+            "old_pos": (old_x, old_y),
+            "pos": (x, y),
+            "has_moved": has_moved,
+            "piece": piece,
+            "captured_piece": None,
+        })
+
+    def record_custom_move(self, data=None, **kwargs):
         """Record a custom move in the move history (e.g. for castling)"""
-        self.move_history.append(notation)
+        entry = {}
+
+        if isinstance(data, dict):
+            entry.update(data)
+
+        entry.update(kwargs)
+
+        if "notation" not in entry:
+            return
+
+        self.move_history.append(entry)
 
     def show_debug(self, moves):
         """ Highlights the given moves for debugging purposes """
@@ -225,4 +254,101 @@ class Board:
             if (hint.x, hint.y) in moves:
                 hint.show_debug()
 
-    
+    def copy(self):
+        """Create a deep copy of the board (used for AI simulations)"""
+        new_board = Board(self.screen, WHITE if self.IS_WHITE_BOTTOM else BLACK, self.screen_info)
+        new_board.IS_WHITES_TURN = self.IS_WHITES_TURN
+        new_board.pieces = [piece.copy(new_board) for piece in self.pieces]
+        new_board.update_pieces_pos()
+        return new_board
+
+    def get_all_moves(self):
+        """Get all possible moves for the current player (used for AI)"""
+        all_moves = []
+        for piece in self.pieces:
+            if piece.color == (WHITE if self.IS_WHITES_TURN else BLACK):
+                for move in piece.get_possible_moves():
+                    all_moves.append((piece, move))
+        return all_moves
+
+    def simulate_move(self, piece, move):
+        """Simulate a move on the board without actually moving the piece (used for AI evaluation)"""
+        x, y = move
+        self.move_piece(piece, x, y)
+
+    def undo_move(self, delete_from_history=True):
+        """Undo the last move"""
+        if not self.move_history:
+            return
+
+        last_move = None
+        if delete_from_history:
+            last_move = self.move_history.pop()
+        if not last_move:
+            last_move = self.move_history[-1]
+
+        moving_piece = last_move.get("piece")
+        moving_color = moving_piece.color if moving_piece else (BLACK if self.IS_WHITES_TURN else WHITE)
+
+        if self.undo_castling(last_move["notation"], moving_color):
+            if moving_color == WHITE:
+                self.IS_WHITES_TURN = True
+            else:            
+                self.IS_WHITES_TURN = False
+            return
+
+        piece = last_move["piece"]
+        old_x, old_y = last_move["old_pos"]
+        captured_piece = last_move["captured_piece"]
+
+        piece.move(old_x, old_y, record_move=False)
+        piece.has_moved = last_move["has_moved"]
+
+        if captured_piece:
+            self.pieces.append(captured_piece)
+            self.captured_pieces.remove(captured_piece)
+
+        if piece.color == WHITE:
+            self.IS_WHITES_TURN = True
+        else:            
+            self.IS_WHITES_TURN = False
+
+        self.update_pieces_pos()
+
+    def undo_castling(self, notation, moving_color=None):
+        """Undo a castling move based on the given notation"""
+        if moving_color is None:
+            moving_color = BLACK if self.IS_WHITES_TURN else WHITE
+
+        if notation == 'O-O':
+            king, rook = None, None
+            if moving_color == WHITE:
+                king = next(piece for piece in self.pieces if isinstance(piece, King) and piece.color == WHITE)
+                rook = next(piece for piece in self.pieces if isinstance(piece, Rook) and piece.color == WHITE and piece.start_x == 7)
+                king.move(4, 7, record_move=False, castle=False)
+                rook.move(7, 7, record_move=False)
+            else:
+                king = next(piece for piece in self.pieces if isinstance(piece, King) and piece.color == BLACK)
+                rook = next(piece for piece in self.pieces if isinstance(piece, Rook) and piece.color == BLACK and piece.start_x == 7)
+                king.move(4, 0, record_move=False, castle=False)
+                rook.move(7, 0, record_move=False)
+            king.has_moved = False
+            rook.has_moved = False
+            return True
+        elif notation == 'O-O-O':
+            king, rook = None, None
+            if moving_color == WHITE:
+                king = next(piece for piece in self.pieces if isinstance(piece, King) and piece.color == WHITE)
+                rook = next(piece for piece in self.pieces if isinstance(piece, Rook) and piece.color == WHITE and piece.start_x == 0)
+                king.move(4, 7, record_move=False, castle=False)
+                rook.move(0, 7, record_move=False)
+            else:
+                king = next(piece for piece in self.pieces if isinstance(piece, King) and piece.color == BLACK)
+                rook = next(piece for piece in self.pieces if isinstance(piece, Rook) and piece.color == BLACK and piece.start_x == 0)
+                king.move(4, 0, record_move=False, castle=False)
+                rook.move(0, 0, record_move=False)
+            king.has_moved = False
+            rook.has_moved = False
+            return True
+        else:
+            return False

@@ -137,18 +137,31 @@ class King(ChessPiece):
         
         return moves
         
-    def move(self, x, y):
-        if x == self.x + 2 and y == self.start_y: # Right castle
+    def move(self, x, y, record_move=True, castle=True):
+        if castle and x == self.x + 2 and y == self.start_y: # Right castle
             rook = next((piece for piece in self.board.pieces if isinstance(piece, Rook) and piece.color == self.color and piece.x > self.x), None)
             if rook:
                 rook.move(self.x + 1, self.y, record_move=False) 
-                self.board.record_custom_move("O-O")
+                rook.has_moved = True
+                super().move(x, y, record_move=False)
+                self.has_moved = True
+                self.board.record_custom_move(notation="O-O", piece=self)
+                return
 
-        if x == self.x - 2 and y == self.start_y: # Left castle
+        if castle and x == self.x - 2 and y == self.start_y: # Left castle
             rook = next((piece for piece in self.board.pieces if isinstance(piece, Rook) and piece.color == self.color and piece.x < self.x), None)
             if rook:
                 rook.move(self.x - 1, self.y, record_move=False) 
-                self.board.record_custom_move("O-O-O")
+                rook.has_moved = True
+                super().move(x, y, record_move=False)
+                self.has_moved = True
+                self.board.record_custom_move(notation="O-O-O", piece=self)
+                return
 
-        super().move(x, y, record_move=False)
+        super().move(x, y, record_move)
+
+    def copy(self, board):
+        new_piece = super().copy(board)
+        new_piece.IS_IN_CHECK = self.IS_IN_CHECK
+        return new_piece
         
